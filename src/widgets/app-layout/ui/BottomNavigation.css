@@ -31,12 +31,3 @@
     text-decoration: underline;
     text-underline-offset: 4px;
 }
-
-.navItemDisabled {
-    color: #aab0b7;
-    cursor: not-allowed;
-}
-
-.navItemDisabled:hover {
-    color: #aab0b7;
-}
