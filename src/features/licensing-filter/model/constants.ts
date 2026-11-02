@@ -1,0 +1,4 @@
+export const MIN_COMMISSION = 0;
+export const MAX_COMMISSION = 600;
+export const COMMISSION_STEP = 10;
+export const DEFAULT_MAX_COMMISSION = MAX_COMMISSION;

@@ -1,0 +1,86 @@
+.filterForm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 12px;
+    border: 1px solid #e0e4e9;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.sliderRow {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filterLabel {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: normal;
+    color: #242424;
+}
+
+.filterValue {
+    font-weight: 700;
+    color: #0072c6;
+}
+
+.filterForm .form-range {
+    width: 100%;
+    margin: 0;
+    cursor: pointer;
+}
+
+.filterForm .form-range::-webkit-slider-thumb {
+    background-color: #0072c6;
+}
+
+.filterForm .form-range::-webkit-slider-thumb:active {
+    background-color: #005a9e;
+}
+
+.filterForm .form-range::-moz-range-thumb {
+    background-color: #0072c6;
+}
+
+.filterForm .form-range::-moz-range-thumb:active {
+    background-color: #005a9e;
+}
+
+.filterForm .form-range::-webkit-slider-runnable-track {
+    background-color: #e0e4e9;
+}
+
+.filterForm .form-range::-moz-range-track {
+    background-color: #e0e4e9;
+}
+
+.searchButton {
+    width: 100%;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 12px;
+    background: #0072c6;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    transition: background 0.2s;
+}
+
+.searchButton:hover {
+    background: #005a9e;
+}
+
+.searchButton:active {
+    background: #005a9e;
+}
+
+.searchButton:disabled,
+.searchButton:disabled:hover {
+    background: #0072c6;
+    opacity: 0.6;
+}

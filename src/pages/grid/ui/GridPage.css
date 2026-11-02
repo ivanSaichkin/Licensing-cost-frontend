@@ -1,0 +1,31 @@
+.gridPage {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    overflow-y: auto;
+    background: #ffffff;
+}
+
+.pageTitle {
+    margin: 0 0 14px;
+    font-weight: 800;
+    font-size: 22px;
+    line-height: 26px;
+    color: #242424;
+}
+
+.cardsGrid {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.gridColumn {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}

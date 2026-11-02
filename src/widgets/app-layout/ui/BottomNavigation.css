@@ -1,0 +1,42 @@
+.bottomNav {
+    flex-shrink: 0;
+    height: 52px;
+    background: #ffffff;
+    border-top: 1px solid #e0e4e9;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 16px;
+}
+
+.navItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #5c5c5c;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 13px;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.navItem:hover {
+    color: #0072c6;
+}
+
+.navItemActive {
+    color: #0072c6;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+.navItemDisabled {
+    color: #aab0b7;
+    cursor: not-allowed;
+}
+
+.navItemDisabled:hover {
+    color: #aab0b7;
+}

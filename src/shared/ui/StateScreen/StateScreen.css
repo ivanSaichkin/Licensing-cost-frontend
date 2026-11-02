@@ -1,0 +1,50 @@
+.stateScreen {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 24px;
+    text-align: center;
+}
+
+.stateScreen_light {
+    background: #ffffff;
+    color: #242424;
+}
+
+.stateScreen_dark {
+    background: #000000;
+    color: #ffffff;
+}
+
+.stateScreenTitle {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 24px;
+}
+
+.stateScreenText {
+    max-width: 300px;
+    font-size: 13px;
+    line-height: 18px;
+    opacity: 0.8;
+}
+
+.stateScreenAction {
+    margin-top: 6px;
+}
+
+.stateScreen a {
+    color: #0072c6;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.stateScreen_dark a {
+    color: #5BA8F5;
+}
