@@ -14,7 +14,6 @@ import './LicensingSlide.css';
 
 interface LicensingSlideProps {
   licensing: Licensing;
-  initialDescriptionExpanded?: boolean;
   hasNext?: boolean;
   onNext?: () => void;
 }
@@ -22,17 +21,14 @@ interface LicensingSlideProps {
 /**
  * Полноэкранная карточка ленты: видео (или обложка), заголовок,
  * раскрываемое описание, параметры расчёта, лайки и кнопка «следующий».
- * Используется и на странице «Лента», и на странице «Подробнее».
+ * Используется на странице «Лента».
  */
 export const LicensingSlide: FC<LicensingSlideProps> = ({
   licensing,
-  initialDescriptionExpanded = false,
   hasNext = false,
   onNext,
 }) => {
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(
-    initialDescriptionExpanded,
-  );
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isVideoFailed, setIsVideoFailed] = useState(false);
 
   const title = licensing.title || 'Без названия';

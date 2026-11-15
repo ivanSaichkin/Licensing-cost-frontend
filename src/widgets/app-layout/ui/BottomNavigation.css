@@ -31,3 +31,15 @@
     text-decoration: underline;
     text-underline-offset: 4px;
 }
+
+.navItemLocked {
+    cursor: default;
+}
+
+.navItemLocked:hover {
+    color: #5c5c5c;
+}
+
+.navItemLocked.navItemActive:hover {
+    color: #0072c6;
+}
