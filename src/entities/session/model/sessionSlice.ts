@@ -1,15 +1,13 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
-import { getStoredAuth } from '@/shared/lib/authStorage';
-
 import type { AuthPayload, SessionState } from './types';
 
-const storedAuth = getStoredAuth();
-
+// Redux-сессия живёт только в памяти: после F5 приложение снова гость.
+// JWT при этом остаётся в localStorage и используется axios-клиентом.
 const initialState: SessionState = {
-  token: storedAuth?.token ?? null,
-  login: storedAuth?.login ?? null,
-  isAuthenticated: Boolean(storedAuth?.token),
+  token: null,
+  login: null,
+  isAuthenticated: false,
   isLoading: false,
   error: null,
 };
