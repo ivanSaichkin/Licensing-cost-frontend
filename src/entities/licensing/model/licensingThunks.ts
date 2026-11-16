@@ -65,6 +65,101 @@ export const fetchLicensings = createAsyncThunk<
   },
 );
 
+export interface FetchFeedArgs {
+  id?: number;
+  isGuest: boolean;
+}
+
+export interface FetchFeedResult {
+  feed: Licensing | null;
+  nextFeed: Licensing | null;
+  mockFallback: boolean;
+}
+
+const getMockFeed = (id?: number): FetchFeedResult => {
+  const index =
+    id === undefined
+      ? 0
+      : MOCK_LICENSINGS.findIndex((licensing) => licensing.id === id);
+
+  if (index < 0 || index >= MOCK_LICENSINGS.length) {
+    return { feed: null, nextFeed: null, mockFallback: true };
+  }
+
+  return {
+    feed: MOCK_LICENSINGS[index],
+    nextFeed: MOCK_LICENSINGS[index + 1] ?? null,
+    mockFallback: true,
+  };
+};
+
+/**
+ * Лента загружается через отдельный feed-endpoint:
+ * GET /api/licensing/feed?id=... — текущая модель,
+ * GET /api/licensing/feed?id=...&next=true — следующая.
+ *
+ * В отличие от списка (GET /api/licensings), feed-сериализатор
+ * содержит is_liked, поэтому состояние лайка сохраняется после F5.
+ */
+export const fetchFeed = createAsyncThunk<
+  FetchFeedResult,
+  FetchFeedArgs,
+  { rejectValue: string }
+>(
+  'licensing/fetchFeed',
+  async ({ id, isGuest }, { dispatch, rejectWithValue }) => {
+    dispatch(requestStarted());
+
+    try {
+      let current: Licensing | undefined;
+
+      try {
+        const currentResponse = await api.licensing.feedList(
+          id === undefined ? undefined : { id },
+        );
+
+        current = toLicensing(currentResponse.data);
+      } catch (error) {
+        if (isNotFoundError(error)) {
+          return { feed: null, nextFeed: null, mockFallback: false };
+        }
+
+        // Гость может работать без бэкенда; авторизованному показываем ошибку.
+        if (isGuest) {
+          return getMockFeed(id);
+        }
+
+        return rejectWithValue(
+          getApiErrorMessage(error, 'Не удалось загрузить ленту'),
+        );
+      }
+
+      if (!current) {
+        return { feed: null, nextFeed: null, mockFallback: false };
+      }
+
+      let nextFeed: Licensing | null = null;
+
+      try {
+        const nextResponse = await api.licensing.feedList({
+          id: current.id,
+          next: true,
+        });
+
+        nextFeed = toLicensing(nextResponse.data);
+      } catch {
+        // 404 — последняя модель; другие ошибки следующей карточки
+        // не должны ломать уже загруженную текущую.
+        nextFeed = null;
+      }
+
+      return { feed: current, nextFeed, mockFallback: false };
+    } finally {
+      dispatch(requestFinished());
+    }
+  },
+);
+
 export const fetchDraft = createAsyncThunk<
   Licensing | null,
   void,

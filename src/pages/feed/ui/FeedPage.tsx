@@ -4,8 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from '@/app/store';
 import {
-  fetchLicensings,
-  findLicensingIndex,
+  fetchFeed,
   LicensingSlide,
   toggleLike,
 } from '@/entities/licensing';
@@ -14,8 +13,12 @@ import { MockNotice, PageLoader, StateScreen } from '@/shared/ui';
 
 /**
  * «Лента» — полноэкранная карточка модели с видео и кнопкой
- * «следующий→». Данные приходят из Go-веб-сервиса; у гостя при
- * недоступном бэкенде используется mock-коллекция.
+ * «следующий→».
+ *
+ * Данные загружаются через GET /api/licensing/feed: этот endpoint
+ * возвращает is_liked, поэтому состояние лайка не теряется после
+ * перезагрузки страницы. Список GET /api/licensings используется
+ * только плиткой.
  */
 export const FeedPage: FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,25 +28,45 @@ export const FeedPage: FC = () => {
   const isAuthenticated = useAppSelector(
     (state) => state.session.isAuthenticated,
   );
-  const { items, isLoading, error, mockFallback } = useAppSelector(
+  const { feed, nextFeed, isLoading, error, mockFallback } = useAppSelector(
     (state) => state.licensing,
   );
   const isBusy = useAppSelector((state) => state.requests.pending > 0);
 
+  const routeId = id === undefined ? undefined : Number(id);
+  const isValidRouteId =
+    routeId === undefined ||
+    (Number.isInteger(routeId) && routeId > 0);
+
   useEffect(() => {
-    dispatch(
-      fetchLicensings({
-        maxCommission: 0,
+    if (!isValidRouteId) {
+      return;
+    }
+
+    void dispatch(
+      fetchFeed({
+        id: routeId,
         isGuest: !isAuthenticated,
       }),
     );
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch, routeId, isAuthenticated, isValidRouteId]);
 
-  if (isLoading && items.length === 0) {
+  if (!isValidRouteId) {
+    return (
+      <StateScreen
+        theme="dark"
+        title="Модель не найдена"
+        description="Некорректная ссылка на модель."
+        action={<Link to={ROUTES.GRID}>Перейти в плитку</Link>}
+      />
+    );
+  }
+
+  if (isLoading && !feed) {
     return <PageLoader theme="dark" />;
   }
 
-  if (error && items.length === 0) {
+  if (error && !feed) {
     return (
       <StateScreen
         theme="dark"
@@ -53,54 +76,41 @@ export const FeedPage: FC = () => {
     );
   }
 
-  if (items.length === 0) {
+  if (!feed) {
     return (
       <StateScreen
         theme="dark"
-        title="Пока нет моделей"
-        description="Опубликованных моделей лицензирования пока нет."
-      />
-    );
-  }
-
-  const licensingId = id === undefined ? null : Number(id);
-  const currentIndex =
-    licensingId === null
-      ? 0
-      : Number.isInteger(licensingId)
-        ? findLicensingIndex(items, licensingId)
-        : -1;
-  const licensing = currentIndex >= 0 ? items[currentIndex] : undefined;
-
-  if (!licensing) {
-    return (
-      <StateScreen
-        theme="dark"
-        title="Модель не найдена"
-        description="Возможно, ссылка устарела или модель удалена."
+        title={
+          routeId === undefined ? 'Пока нет моделей' : 'Модель не найдена'
+        }
+        description={
+          routeId === undefined
+            ? 'Опубликованных моделей лицензирования пока нет.'
+            : 'Возможно, ссылка устарела или модель удалена.'
+        }
         action={<Link to={ROUTES.GRID}>Перейти в плитку</Link>}
       />
     );
   }
 
-  const nextLicensing = items[currentIndex + 1];
-
   const handleNext = () => {
-    if (nextLicensing) {
-      navigate(buildLicensingRoute(nextLicensing.id));
+    if (nextFeed) {
+      navigate(buildLicensingRoute(nextFeed.id));
     }
   };
 
   const handleLike = () => {
     if (!isAuthenticated) {
-      navigate(ROUTES.LOGIN, { state: { from: `/licensing/${licensing.id}` } });
+      navigate(ROUTES.LOGIN, {
+        state: { from: buildLicensingRoute(feed.id) },
+      });
       return;
     }
 
     void dispatch(
       toggleLike({
-        id: licensing.id,
-        like: licensing.is_liked !== 1,
+        id: feed.id,
+        like: feed.is_liked !== 1,
       }),
     );
   };
@@ -109,12 +119,12 @@ export const FeedPage: FC = () => {
     <>
       <MockNotice isVisible={mockFallback} />
       <LicensingSlide
-        key={licensing.id}
-        licensing={licensing}
-        hasNext={Boolean(nextLicensing)}
+        key={feed.id}
+        licensing={feed}
+        hasNext={Boolean(nextFeed)}
         onNext={handleNext}
         onLike={handleLike}
-        isLiked={licensing.is_liked === 1}
+        isLiked={feed.is_liked === 1}
         isBusy={isBusy}
       />
     </>

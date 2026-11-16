@@ -1,7 +1,6 @@
 export type { Licensing, LicensingStatus } from './model/types';
 export {
   filterByMaxCommission,
-  findLicensingIndex,
   splitIntoColumns,
 } from './model/selectors';
 export type { LicensingState } from './model/licensingSlice';
@@ -14,10 +13,13 @@ export {
   createDraft,
   deleteLicensing,
   fetchDraft,
+  fetchFeed,
   fetchLicensings,
   publishDraft,
   toggleLike,
   type CreateDraftArgs,
+  type FetchFeedArgs,
+  type FetchFeedResult,
   type FetchLicensingsArgs,
   type FetchLicensingsResult,
   type PublishDraftArgs,

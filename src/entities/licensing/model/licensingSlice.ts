@@ -5,6 +5,7 @@ import {
   createDraft,
   deleteLicensing,
   fetchDraft,
+  fetchFeed,
   fetchLicensings,
   publishDraft,
   toggleLike,
@@ -12,6 +13,8 @@ import {
 
 export interface LicensingState {
   items: Licensing[];
+  feed: Licensing | null;
+  nextFeed: Licensing | null;
   draft: Licensing | null;
   isLoading: boolean;
   error: string | null;
@@ -20,6 +23,8 @@ export interface LicensingState {
 
 const initialState: LicensingState = {
   items: [],
+  feed: null,
+  nextFeed: null,
   draft: null,
   isLoading: false,
   error: null,
@@ -32,6 +37,8 @@ const licensingSlice = createSlice({
   reducers: {
     clearLicensing(state) {
       state.items = [];
+      state.feed = null;
+      state.nextFeed = null;
       state.draft = null;
       state.isLoading = false;
       state.error = null;
@@ -57,6 +64,27 @@ const licensingSlice = createSlice({
         state.isLoading = false;
         state.error =
           action.payload ?? 'Не удалось загрузить модели';
+      })
+
+      .addCase(fetchFeed.pending, (state) => {
+        state.isLoading = true;
+        state.feed = null;
+        state.nextFeed = null;
+        state.error = null;
+        state.mockFallback = false;
+      })
+      .addCase(fetchFeed.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.feed = action.payload.feed;
+        state.nextFeed = action.payload.nextFeed;
+        state.mockFallback = action.payload.mockFallback;
+      })
+      .addCase(fetchFeed.rejected, (state, action) => {
+        state.isLoading = false;
+        state.feed = null;
+        state.nextFeed = null;
+        state.mockFallback = false;
+        state.error = action.payload ?? 'Не удалось загрузить ленту';
       })
 
       .addCase(fetchDraft.pending, (state) => {
@@ -108,6 +136,14 @@ const licensingSlice = createSlice({
       })
       .addCase(toggleLike.fulfilled, (state, action) => {
         state.isLoading = false;
+
+        const updateLike = (licensing: Licensing | null) => {
+          if (licensing?.id === action.payload.id) {
+            licensing.likes_count = action.payload.likes_count;
+            licensing.is_liked = action.payload.is_liked;
+          }
+        };
+
         const item = state.items.find(
           (licensing) => licensing.id === action.payload.id,
         );
@@ -116,6 +152,9 @@ const licensingSlice = createSlice({
           item.likes_count = action.payload.likes_count;
           item.is_liked = action.payload.is_liked;
         }
+
+        updateLike(state.feed);
+        updateLike(state.nextFeed);
       })
       .addCase(toggleLike.rejected, (state, action) => {
         state.isLoading = false;

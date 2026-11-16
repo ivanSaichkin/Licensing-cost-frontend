@@ -37,8 +37,3 @@ export const splitIntoColumns = (
 
   return [leftColumn, rightColumn];
 };
-
-export const findLicensingIndex = (
-  licensings: Licensing[],
-  id: number,
-): number => licensings.findIndex((licensing) => licensing.id === id);
