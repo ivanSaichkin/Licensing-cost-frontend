@@ -65,3 +65,28 @@
     font-size: 11px;
     color: #5c5c5c;
 }
+
+.tariffDelete {
+    width: 100%;
+    margin-top: 8px;
+    padding: 6px;
+    border: 1px solid #e0e4e9;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #d33;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.tariffDelete:hover {
+    border-color: #d33;
+    background: #ffe5e5;
+}
+
+.tariffDelete:disabled {
+    cursor: default;
+    opacity: 0.5;
+}

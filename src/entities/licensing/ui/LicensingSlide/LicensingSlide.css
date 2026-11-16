@@ -116,9 +116,26 @@
     gap: 4px;
     margin-top: 4px;
     padding: 5px 10px;
+    border: none;
     border-radius: 20px;
     background: rgba(255, 255, 255, 0.15);
     color: #ffffff;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.feedLike:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.feedLikeActive {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.feedLike:disabled {
+    cursor: default;
+    opacity: 0.65;
 }
 
 .feedHeart {

@@ -21,6 +21,14 @@
     transition: color 0.2s;
 }
 
+.navItemButton {
+    padding: 0;
+    border: none;
+    background: none;
+    font-family: inherit;
+    cursor: pointer;
+}
+
 .navItem:hover {
     color: #0072c6;
 }

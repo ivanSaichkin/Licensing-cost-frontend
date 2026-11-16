@@ -15,13 +15,18 @@ export default defineConfig({
     host: true,
     port: 3000,
     strictPort: true,
-    // Опрос файлов нужен для hot-reload при запуске в Docker (см. README).
+    // Опрос файлов нужен для hot-reload при запуске в Docker.
     watch: { usePolling: true },
-    // Прокси избавляет от CORS при работе с Go-бэкендом (lab 3-4).
+    // Оба прокси избавляют от CORS: Go-бэкенд и MinIO.
     proxy: {
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
+      },
+      '/s3': {
+        target: 'http://localhost:9000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/s3/, ''),
       },
     },
   },

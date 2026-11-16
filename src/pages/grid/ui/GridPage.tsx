@@ -1,90 +1,133 @@
 import type { FC } from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 
+import { useAppDispatch, useAppSelector } from '@/app/store';
 import {
-  filterByMaxCommission,
+  deleteLicensing,
+  fetchLicensings,
   LicensingCard,
   splitIntoColumns,
-  useLicensings,
 } from '@/entities/licensing';
 import {
-  DEFAULT_MAX_COMMISSION,
+  applyFilter,
   LicensingFilter,
+  setMaxCommission,
 } from '@/features/licensing-filter';
 import { buildLicensingRoute } from '@/shared/config';
-import { PageLoader, StateScreen } from '@/shared/ui';
+import { MockNotice, PageLoader, StateScreen } from '@/shared/ui';
 
 import './GridPage.css';
 
 /**
- * «Плитка» — список моделей в две колонки с фильтром по комиссии.
+ * «Плитка» — список моделей в две колонки. Фильтр хранится в Redux
+ * и передаётся в запрос к бэкенду параметром max_commission.
  */
 export const GridPage: FC = () => {
-  const { licensings, isLoading, error } = useLicensings();
-  const [maxCommission, setMaxCommission] = useState(DEFAULT_MAX_COMMISSION);
-  const [appliedMaxCommission, setAppliedMaxCommission] = useState(
-    DEFAULT_MAX_COMMISSION,
+  const dispatch = useAppDispatch();
+  const { maxCommission, appliedMaxCommission } = useAppSelector(
+    (state) => state.filter,
   );
+  const { items, isLoading, error, mockFallback } = useAppSelector(
+    (state) => state.licensing,
+  );
+  const isAuthenticated = useAppSelector(
+    (state) => state.session.isAuthenticated,
+  );
+  const isBusy = useAppSelector((state) => state.requests.pending > 0);
 
-  const visibleLicensings = useMemo(
-    () => filterByMaxCommission(licensings, appliedMaxCommission),
-    [licensings, appliedMaxCommission],
-  );
+  useEffect(() => {
+    dispatch(
+      fetchLicensings({
+        maxCommission: appliedMaxCommission,
+        isGuest: !isAuthenticated,
+      }),
+    );
+  }, [dispatch, appliedMaxCommission, isAuthenticated]);
 
   const [leftColumn, rightColumn] = useMemo(
-    () => splitIntoColumns(visibleLicensings),
-    [visibleLicensings],
+    () => splitIntoColumns(items),
+    [items],
   );
 
   const handleApply = () => {
-    setAppliedMaxCommission(maxCommission);
+    dispatch(applyFilter());
+  };
+
+  const handleDelete = (id: number) => {
+    if (window.confirm('Удалить модель лицензирования?')) {
+      void dispatch(deleteLicensing(id));
+    }
   };
 
   return (
     <div className="gridPage">
       <h1 className="pageTitle">Модели лицензирования</h1>
 
+      <MockNotice isVisible={mockFallback} />
+
       <LicensingFilter
         maxCommission={maxCommission}
-        onMaxCommissionChange={setMaxCommission}
+        onMaxCommissionChange={(value) =>
+          dispatch(setMaxCommission(value))
+        }
         onApply={handleApply}
-        disabled={isLoading}
+        disabled={isLoading || isBusy}
       />
 
-      {isLoading ? (
+      {isLoading && items.length === 0 ? (
         <PageLoader />
-      ) : error ? (
+      ) : error && items.length === 0 ? (
         <StateScreen
           title="Не удалось загрузить модели"
           description={error}
         />
-      ) : visibleLicensings.length === 0 ? (
+      ) : items.length === 0 ? (
         <StateScreen
           title="Ничего не найдено"
           description="По выбранной комиссии моделей нет. Увеличьте значение фильтра и нажмите «Найти»."
         />
       ) : (
-        <div className="cardsGrid">
-          <div className="gridColumn">
-            {leftColumn.map((licensing) => (
-              <LicensingCard
-                key={licensing.id}
-                licensing={licensing}
-                href={buildLicensingRoute(licensing.id)}
-              />
-            ))}
-          </div>
+        <>
+          {error ? (
+            <div className="gridError" role="alert">
+              {error}
+            </div>
+          ) : null}
 
-          <div className="gridColumn">
-            {rightColumn.map((licensing) => (
-              <LicensingCard
-                key={licensing.id}
-                licensing={licensing}
-                href={buildLicensingRoute(licensing.id)}
-              />
-            ))}
+          <div className="cardsGrid">
+            <div className="gridColumn">
+              {leftColumn.map((licensing) => (
+                <LicensingCard
+                  key={licensing.id}
+                  licensing={licensing}
+                  href={buildLicensingRoute(licensing.id)}
+                  isBusy={isBusy}
+                  onDelete={
+                    isAuthenticated && licensing.is_creator === 1
+                      ? () => handleDelete(licensing.id)
+                      : undefined
+                  }
+                />
+              ))}
+            </div>
+
+            <div className="gridColumn">
+              {rightColumn.map((licensing) => (
+                <LicensingCard
+                  key={licensing.id}
+                  licensing={licensing}
+                  href={buildLicensingRoute(licensing.id)}
+                  isBusy={isBusy}
+                  onDelete={
+                    isAuthenticated && licensing.is_creator === 1
+                      ? () => handleDelete(licensing.id)
+                      : undefined
+                  }
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

@@ -2,6 +2,7 @@ export const ROUTES = {
   FEED: '/',
   GRID: '/grid',
   ADD: '/add',
+  LOGIN: '/login',
   LICENSING: '/licensing',
 } as const;
 
@@ -20,3 +21,6 @@ export const isGridRoute = (pathname: string): boolean =>
 
 export const isAddRoute = (pathname: string): boolean =>
   pathname === ROUTES.ADD;
+
+export const isLoginRoute = (pathname: string): boolean =>
+  pathname === ROUTES.LOGIN;

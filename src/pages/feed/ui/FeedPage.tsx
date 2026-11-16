@@ -1,32 +1,49 @@
 import type { FC } from 'react';
+import { useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
+import { useAppDispatch, useAppSelector } from '@/app/store';
 import {
+  fetchLicensings,
   findLicensingIndex,
   LicensingSlide,
-  useLicensings,
+  toggleLike,
 } from '@/entities/licensing';
 import { buildLicensingRoute, ROUTES } from '@/shared/config';
-import { PageLoader, StateScreen } from '@/shared/ui';
+import { MockNotice, PageLoader, StateScreen } from '@/shared/ui';
 
 /**
  * «Лента» — полноэкранная карточка модели с видео и кнопкой
- * «следующий→», как в SSR-шаблоне feed предыдущих лабораторных.
- *
- * Страница открывается:
- *  - на `/` — с первой опубликованной модели;
- *  - на `/licensing/:id` — с конкретной модели (переход из плитки).
+ * «следующий→». Данные приходят из Go-веб-сервиса; у гостя при
+ * недоступном бэкенде используется mock-коллекция.
  */
 export const FeedPage: FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { licensings, isLoading, error } = useLicensings();
+  const dispatch = useAppDispatch();
 
-  if (isLoading) {
+  const isAuthenticated = useAppSelector(
+    (state) => state.session.isAuthenticated,
+  );
+  const { items, isLoading, error, mockFallback } = useAppSelector(
+    (state) => state.licensing,
+  );
+  const isBusy = useAppSelector((state) => state.requests.pending > 0);
+
+  useEffect(() => {
+    dispatch(
+      fetchLicensings({
+        maxCommission: 0,
+        isGuest: !isAuthenticated,
+      }),
+    );
+  }, [dispatch, isAuthenticated]);
+
+  if (isLoading && items.length === 0) {
     return <PageLoader theme="dark" />;
   }
 
-  if (error) {
+  if (error && items.length === 0) {
     return (
       <StateScreen
         theme="dark"
@@ -36,12 +53,12 @@ export const FeedPage: FC = () => {
     );
   }
 
-  if (licensings.length === 0) {
+  if (items.length === 0) {
     return (
       <StateScreen
         theme="dark"
         title="Пока нет моделей"
-        description="В mock-коллекции нет опубликованных моделей лицензирования."
+        description="Опубликованных моделей лицензирования пока нет."
       />
     );
   }
@@ -51,10 +68,9 @@ export const FeedPage: FC = () => {
     licensingId === null
       ? 0
       : Number.isInteger(licensingId)
-        ? findLicensingIndex(licensings, licensingId)
+        ? findLicensingIndex(items, licensingId)
         : -1;
-  const licensing =
-    currentIndex >= 0 ? licensings[currentIndex] : undefined;
+  const licensing = currentIndex >= 0 ? items[currentIndex] : undefined;
 
   if (!licensing) {
     return (
@@ -67,7 +83,7 @@ export const FeedPage: FC = () => {
     );
   }
 
-  const nextLicensing = licensings[currentIndex + 1];
+  const nextLicensing = items[currentIndex + 1];
 
   const handleNext = () => {
     if (nextLicensing) {
@@ -75,12 +91,32 @@ export const FeedPage: FC = () => {
     }
   };
 
+  const handleLike = () => {
+    if (!isAuthenticated) {
+      navigate(ROUTES.LOGIN, { state: { from: `/licensing/${licensing.id}` } });
+      return;
+    }
+
+    void dispatch(
+      toggleLike({
+        id: licensing.id,
+        like: licensing.is_liked !== 1,
+      }),
+    );
+  };
+
   return (
-    <LicensingSlide
-      key={licensing.id}
-      licensing={licensing}
-      hasNext={Boolean(nextLicensing)}
-      onNext={handleNext}
-    />
+    <>
+      <MockNotice isVisible={mockFallback} />
+      <LicensingSlide
+        key={licensing.id}
+        licensing={licensing}
+        hasNext={Boolean(nextLicensing)}
+        onNext={handleNext}
+        onLike={handleLike}
+        isLiked={licensing.is_liked === 1}
+        isBusy={isBusy}
+      />
+    </>
   );
 };

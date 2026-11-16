@@ -16,17 +16,22 @@ interface LicensingSlideProps {
   licensing: Licensing;
   hasNext?: boolean;
   onNext?: () => void;
+  onLike?: () => void;
+  isLiked?: boolean;
+  isBusy?: boolean;
 }
 
 /**
  * Полноэкранная карточка ленты: видео (или обложка), заголовок,
  * раскрываемое описание, параметры расчёта, лайки и кнопка «следующий».
- * Используется на странице «Лента».
  */
 export const LicensingSlide: FC<LicensingSlideProps> = ({
   licensing,
   hasNext = false,
   onNext,
+  onLike,
+  isLiked = false,
+  isBusy = false,
 }) => {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isVideoFailed, setIsVideoFailed] = useState(false);
@@ -97,18 +102,22 @@ export const LicensingSlide: FC<LicensingSlideProps> = ({
               </span>
             </div>
 
-            <span
-              className="feedLike"
-              aria-label={`Лайков: ${licensing.likes_count}`}
+            <button
+              type="button"
+              className={`feedLike ${isLiked ? 'feedLikeActive' : ''}`}
+              onClick={onLike}
+              disabled={isBusy}
+              aria-label={isLiked ? 'Убрать лайк' : 'Поставить лайк'}
+              aria-pressed={isLiked}
             >
-              <span className="feedHeart">❤️</span>
+              <span className="feedHeart">{isLiked ? '❤️' : '🤍'}</span>
               <span className="feedLikeCount">{licensing.likes_count}</span>
-            </span>
+            </button>
 
             <Button
               type="button"
               className="feedNextButton"
-              disabled={!hasNext}
+              disabled={!hasNext || isBusy}
               onClick={onNext}
             >
               следующий→

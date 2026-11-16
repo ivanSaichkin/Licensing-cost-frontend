@@ -4,8 +4,11 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AddPage } from '@/pages/add';
 import { FeedPage } from '@/pages/feed';
 import { GridPage } from '@/pages/grid';
+import { LoginPage } from '@/pages/login';
 import { LICENSING_ROUTE_PATTERN, ROUTES } from '@/shared/config';
 import { AppLayout } from '@/widgets/app-layout';
+
+import { RequireAuth } from './RequireAuth';
 
 export const AppRouter: FC = () => (
   <BrowserRouter>
@@ -13,7 +16,15 @@ export const AppRouter: FC = () => (
       <Route element={<AppLayout />}>
         <Route path={ROUTES.FEED} element={<FeedPage />} />
         <Route path={ROUTES.GRID} element={<GridPage />} />
-        <Route path={ROUTES.ADD} element={<AddPage />} />
+        <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+        <Route
+          path={ROUTES.ADD}
+          element={
+            <RequireAuth>
+              <AddPage />
+            </RequireAuth>
+          }
+        />
         <Route path={ROUTES.LICENSING} element={<FeedPage />} />
         <Route path={LICENSING_ROUTE_PATTERN} element={<FeedPage />} />
         <Route path="*" element={<Navigate to={ROUTES.FEED} replace />} />

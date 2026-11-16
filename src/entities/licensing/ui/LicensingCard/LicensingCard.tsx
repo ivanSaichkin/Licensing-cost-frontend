@@ -15,6 +15,8 @@ import './LicensingCard.css';
 interface LicensingCardProps {
   licensing: Licensing;
   href: string;
+  onDelete?: () => void;
+  isBusy?: boolean;
 }
 
 const handleImageError = (event: SyntheticEvent<HTMLImageElement>) => {
@@ -28,6 +30,8 @@ const handleImageError = (event: SyntheticEvent<HTMLImageElement>) => {
 export const LicensingCard: FC<LicensingCardProps> = ({
   licensing,
   href,
+  onDelete,
+  isBusy = false,
 }) => {
   const title = licensing.title || 'Без названия';
 
@@ -67,6 +71,17 @@ export const LicensingCard: FC<LicensingCardProps> = ({
             ❤️ {licensing.likes_count}
           </span>
         </div>
+
+        {onDelete ? (
+          <button
+            type="button"
+            className="tariffDelete"
+            disabled={isBusy}
+            onClick={onDelete}
+          >
+            Удалить
+          </button>
+        ) : null}
       </Card.Body>
     </Card>
   );

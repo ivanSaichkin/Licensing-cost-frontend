@@ -1,0 +1,63 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam actorBackgroundColor #FFFFFF
+skinparam actorBorderColor #0072C6
+skinparam usecaseBackgroundColor #F7FBFF
+skinparam usecaseBorderColor #0072C6
+skinparam usecaseFontColor #242424
+skinparam arrowColor #5C5C5C
+skinparam noteBackgroundColor #FFF8E5
+skinparam noteBorderColor #F0D58C
+skinparam shadowing false
+hide stereotype
+
+title Диаграмма прецедентов React-интерфейса Licensing-cost
+
+actor "Гость" as Guest
+actor "Авторизованный\nпользователь" as User
+
+rectangle "React-интерфейс Licensing-cost" {
+  usecase "Просмотреть ленту" as Feed
+  usecase "Просмотреть плитку" as Grid
+  usecase "Отфильтровать модели\nпо максимальной комиссии" as Filter
+  usecase "Открыть карточку модели" as Details
+  usecase "Войти" as Login
+  usecase "Выйти" as Logout
+  usecase "Добавить модель\n(создать черновик)" as Add
+  usecase "Опубликовать модель" as Publish
+  usecase "Поставить или убрать лайк" as Like
+  usecase "Удалить свою модель" as Delete
+  usecase "Показать mock-данные\nпри недоступном API" as Mock
+}
+
+Guest --> Feed
+Guest --> Grid
+Guest --> Filter
+Guest --> Details
+Guest --> Login
+Guest --> Mock
+
+User --> Feed
+User --> Grid
+User --> Filter
+User --> Details
+User --> Login
+User --> Logout
+User --> Add
+User --> Publish
+User --> Like
+User --> Delete
+
+Add ..> Login : <<include>>
+Publish ..> Add : <<include>>
+Like ..> Login : <<include>>
+Delete ..> Login : <<include>>
+
+note bottom
+  Все доменные данные и действия идут в Go-веб-сервис
+  (REST API), медиа — в MinIO; в dev-режиме запросы идут
+  через прокси Vite /api и /s3.
+  Mock-данные показываются только гостю при недоступном API.
+  Авторизация — JWT Bearer, без регистрации в интерфейсе.
+end note
+@enduml

@@ -1,7 +1,19 @@
 import type { FC } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-import { isAddRoute, isFeedRoute, isGridRoute, ROUTES } from '@/shared/config';
+import { useAppDispatch, useAppSelector } from '@/app/store';
+import { clearLicensing } from '@/entities/licensing';
+import { loggedOut, logoutRequest } from '@/entities/session';
+import { resetFilter } from '@/features/licensing-filter';
+import {
+  isAddRoute,
+  isFeedRoute,
+  isGridRoute,
+  isLoginRoute,
+  ROUTES,
+} from '@/shared/config';
+import { clearStoredAuth } from '@/shared/lib';
+import { requestFinished, requestStarted } from '@/shared/model';
 
 import './BottomNavigation.css';
 
@@ -10,6 +22,7 @@ interface NavItemProps {
   to?: string;
   isActive: boolean;
   isAvailable?: boolean;
+  onClick?: () => void;
 }
 
 const NavItem: FC<NavItemProps> = ({
@@ -17,7 +30,22 @@ const NavItem: FC<NavItemProps> = ({
   to,
   isActive,
   isAvailable = true,
+  onClick,
 }) => {
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        className={`navItem navItemButton ${
+          isActive ? 'navItemActive' : ''
+        }`}
+        onClick={onClick}
+      >
+        <span className="navLabel">{label}</span>
+      </button>
+    );
+  }
+
   if (!isAvailable || !to) {
     return (
       <span
@@ -45,12 +73,34 @@ const NavItem: FC<NavItemProps> = ({
 };
 
 /**
- * Нижняя таб-панель из четырёх пунктов: Лента, Добавление, Плитка, Вход.
- * По заданию лабораторной 5 доступны только «Лента» и «Плитка»:
- * «Добавление» и «Вход» отображаются, но не нажимаются.
+ * Меню гостя: Лента, Добавление (недоступно), Плитка, Вход.
+ * Меню пользователя: Лента, Добавление, Плитка, Выход.
  */
 export const BottomNavigation: FC = () => {
   const { pathname } = useLocation();
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, token } = useAppSelector(
+    (state) => state.session,
+  );
+
+  const handleLogout = async () => {
+    dispatch(requestStarted());
+
+    try {
+      if (token) {
+        await logoutRequest(token);
+      }
+    } catch {
+      // Локальный выход выполняем даже если сервер недоступен.
+    } finally {
+      clearStoredAuth();
+      dispatch(loggedOut());
+      dispatch(resetFilter());
+      dispatch(clearLicensing());
+      dispatch(requestFinished());
+      window.location.assign(ROUTES.FEED);
+    }
+  };
 
   return (
     <nav className="bottomNav" aria-label="Основная навигация">
@@ -63,14 +113,28 @@ export const BottomNavigation: FC = () => {
         label="Добавление"
         to={ROUTES.ADD}
         isActive={isAddRoute(pathname)}
-        isAvailable={false}
+        isAvailable={isAuthenticated}
       />
       <NavItem
         label="Плитка"
         to={ROUTES.GRID}
         isActive={isGridRoute(pathname)}
       />
-      <NavItem label="Вход" isActive={false} isAvailable={false} />
+      {isAuthenticated ? (
+        <NavItem
+          label="Выход"
+          isActive={false}
+          onClick={() => {
+            void handleLogout();
+          }}
+        />
+      ) : (
+        <NavItem
+          label="Вход"
+          to={ROUTES.LOGIN}
+          isActive={isLoginRoute(pathname)}
+        />
+      )}
     </nav>
   );
 };

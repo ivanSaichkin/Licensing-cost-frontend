@@ -29,3 +29,14 @@
     flex-direction: column;
     gap: 10px;
 }
+
+.gridError {
+    margin-bottom: 10px;
+    padding: 8px 10px;
+    border: 1px solid #f1c0c0;
+    border-radius: 10px;
+    background: #fff1f1;
+    color: #b42318;
+    font-size: 11px;
+    line-height: 15px;
+}
